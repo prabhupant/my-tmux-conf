@@ -1,101 +1,118 @@
-## split panes using | and -
-##
-#bind | split-window -h
-#bind - split-window -v
-#unbind '"'
-#unbind %
-#
-## reload config file
-#bind r source-file ~/.tmux.conf
-#
-## switch panes using Alt-arrow without prefix
-#bind -n M-Left select-pane -L
-#bind -n M-Right select-pane -R
-#bind -n M-Up select-pane -U
-#bind -n M-Down select-pane -D
-#
-## don't rename windows automatically
-#set-option -g allow-rename off
-#
-#######################
-#### DESIGN CHANGES ###
-#######################
-#
-## loud or quiet?
-#set-option -g visual-activity off
-#set-option -g visual-bell off
-#set-option -g visual-silence off
-#set-window-option -g monitor-activity off
-#set-option -g bell-action none
-#
-##  modes
-#setw -g clock-mode-colour colour5
-#setw -g mode-attr bold
-#setw -g mode-fg colour1
-#setw -g mode-bg colour18
-#
-## panes
-#set -g pane-border-bg colour0
-#set -g pane-border-fg colour19
-#set -g pane-active-border-bg colour0
-#set -g pane-active-border-fg colour9
-#
-## statusbar
-#set -g status-position bottom
-#set -g status-justify left
-set -g status-bg colour0
-set -g status-fg colour255
-#set -g status-attr dim
-#set -g status-left ''
-#set -g status-right '#[fg=colour233,bg=colour19,bold] %d/%m #[fg=colour233,bg=colour8,bold] %H:%M:%S '
-#set -g status-right-length 50
-#set -g status-left-length 20
-#
-#setw -g window-status-current-fg colour1
-#setw -g window-status-current-bg colour19
-#setw -g window-status-current-attr bold
-#setw -g window-status-current-format ' #I#[fg=colour249]:#[fg=colour255]#W#[fg=colour249]#F '
-#
-#setw -g window-status-fg colour9
-#setw -g window-status-bg colour18
-#setw -g window-status-attr none
-#setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
-#
-#setw -g window-status-bell-attr bold
-#setw -g window-status-bell-fg colour255
-#setw -g window-status-bell-bg colour1
-#
-## messages
-#set -g message-attr bold
-#set -g message-fg colour232
-#set -g message-bg colour16
+#############################
+# GENERAL
+#############################
 
-# 256 color
-set -g default-terminal "screen.xterm-256color"
-set -g mouse on
-
-
+# Start numbering windows at 1
 set -g base-index 1
 
-# Automatically set windows title
-set-window-option -g automatic-rename on
-set-option -g set-titles on
+# Start pane numbering at 1
+setw -g pane-base-index 1
 
-#theme
+# Don't automatically rename windows
+set -g allow-rename off
+set-window-option -g automatic-rename off
+
+# Increase scrollback history
+set -g history-limit 50000
+
+# Enable mouse
+set -g mouse on
+
+# 256 colors
+set -g default-terminal "tmux-256color"
+
+# Without this tmux quantizes 24-bit color down to the 256 palette
+set -as terminal-features ",*:RGB"
+
+# Don't exit tmux when a window closes
+set -g remain-on-exit off
+
+
+#############################
+# KEY BINDINGS
+#############################
+
+# Reload config
+bind r source-file "$HOME/.config/tmux/tmux.conf" \; display-message "tmux config reloaded"
+
+# Split panes using | and -
+unbind %
+unbind '"'
+bind | split-window -h
+bind - split-window -v
+
+# Switch panes with Alt + arrow keys
+bind -n M-Left select-pane -L
+bind -n M-Right select-pane -R
+bind -n M-Up select-pane -U
+bind -n M-Down select-pane -D
+
+# Switch between current and last window
+bind C-b last-window
+
+
+#############################
+# PANE MANAGEMENT
+#############################
+
+# Resize panes with Alt + Shift + arrow
+bind -n M-S-Left resize-pane -L 5
+bind -n M-S-Right resize-pane -R 5
+bind -n M-S-Up resize-pane -U 5
+bind -n M-S-Down resize-pane -D 5
+
+
+#############################
+# COPY MODE
+#############################
+
+# Vi-style copy mode
+setw -g mode-keys vi
+
+# Let tmux push copies to the outer terminal via OSC 52 (also works over SSH)
+set -g set-clipboard on
+
+# Default binds v to rectangle-toggle; move it to C-v so v matches vim
+bind-key -T copy-mode-vi 'v' send-keys -X begin-selection
+bind-key -T copy-mode-vi 'C-v' send-keys -X rectangle-toggle
+
+# Use tmux's copy mode with macOS clipboard
+bind-key -T copy-mode-vi 'y' send-keys -X copy-pipe-and-cancel "pbcopy"
+
+# Default drag-release only fills the tmux buffer, not the system clipboard
+bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "pbcopy"
+
+
+#############################
+# STATUS BAR
+#############################
+
+set -g status-position bottom
 
 set -g status-bg black
 set -g status-fg white
-#set -g window-status-current-bg white
-#set -g window-status-current-fg blue
-#set -g window-status-current-attr bold
-set -g status-interval 60
+
+set -g status-interval 5
+
 set -g status-left-length 60
 set -g status-left '#[fg=green](#S) #(whoami)'
-set -g status-right '#[fg=yellow]#(cut -d " " -f 1-3 /proc/loadavg)#[default] #[fg=white]%H:%M#[default]'
 
-# Custom key bindings
+set -g status-right-length 100
+set -g status-right '#[fg=yellow]#(sysctl -n vm.loadavg | cut -d" " -f2-4) #[fg=white]%H:%M'
 
-bind-key C-b last-window # Switch between current and last open windows
+# Current window
+setw -g window-status-current-format '#[fg=black,bg=white] #I:#W '
 
-set-option -g history-limit 15000
-#set-option -g default-path "$PWD"
+# Other windows
+setw -g window-status-format '#[fg=white,bg=black] #I:#W '
+
+
+#############################
+# PERFORMANCE
+#############################
+
+# Faster escape sequences
+set -sg escape-time 0
+
+# Focus events
+set -g focus-events on
