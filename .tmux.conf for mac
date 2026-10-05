@@ -24,6 +24,10 @@ set -g default-terminal "tmux-256color"
 # Without this tmux quantizes 24-bit color down to the 256 palette
 set -as terminal-features ",*:RGB"
 
+# Without this tmux drops the modifier on Shift+Enter, Ctrl+Enter etc.
+# and apps (e.g. Claude Code) just see a plain CR
+set -s extended-keys always
+
 # Don't exit tmux when a window closes
 set -g remain-on-exit off
 
