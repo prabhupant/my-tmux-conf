@@ -39,11 +39,11 @@ set -g remain-on-exit off
 # Reload config
 bind r source-file "$HOME/.config/tmux/tmux.conf" \; display-message "tmux config reloaded"
 
-# Split panes using | and -
-unbind %
-unbind '"'
+# Split panes using | and - (defaults % and " kept too)
 bind | split-window -h
 bind - split-window -v
+bind % split-window -h
+bind '"' split-window -v
 
 # Switch panes with Alt + arrow keys
 bind -n M-Left select-pane -L
